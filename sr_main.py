@@ -20,7 +20,9 @@ from librosa import display
 ''' ________ FAST FOURIER TRANSFORM LIBRARIES ________ '''
 from scipy.fft import fft, ifft
 from scipy import signal
-
+'''___________ CNN LIBRARY_____________'''
+from cnn_model import *
+from numpy_matrix_list import numpy_matrix_list
 
 
 global n
@@ -121,7 +123,9 @@ for (dirpath, dirnames, filenames) in walk(mypath):
     print(f)
 
 ''' ================== GET SAMPLES FROM 1ST FILE ====================== '''    
-    
+
+holas = []
+
 for i in range(len(f)):
     if current_os == 0:    
         samples, sampling_rate = librosa.load(mypath+"/" + f[i], sr=None, mono=True, offset= 0.0, duration = None)
@@ -140,8 +144,95 @@ for i in range(len(f)):
 
     spect = spectrogram(samples, sampling_rate, max_freq = 8000)
     fig, ax = plt.subplots()
-    sb.heatmap(spect)
-    plt.title("plot {n}".format(n = i))
-    plt.ylabel("Frequency over {n}".format(n = int(  (1/(2*T)) / len(spect)  )))
-    plt.xlabel("Time window")
-    plt.show()
+    #sb.heatmap(spect)
+    #plt.title("plot {n}".format(n = i))
+    #plt.ylabel("Frequency over {n}".format(n = int(  (1/(2*T)) / len(spect)  )))
+    #plt.xlabel("Time window")
+    #plt.show()
+    spect = numpy.array(spect)
+    spect = spect.reshape(-1)
+    spect = spect.tolist()
+    holas.append(spect)
+
+def generate_siimple_test_data():
+    '''function that genrates simple data 3x3 bits and uses CNN to check if dot is centered or outside'''
+    x_tests = []
+    test1 = np.array([ [0,0,0],[0,1,0],[0,0,0] ])
+    test1 = test1.reshape(-1)
+    test1 = test1.tolist()
+    x_tests.append(test1)
+    test2 = np.array([ [0,0,0],[0,1,0],[0,0,0] ])
+    test2 = test2.reshape(-1)
+    test2 = test2.tolist()
+    x_tests.append(test2)
+    test3 = np.array([ [0,1,0],[0,0,0],[0,0,0] ])
+    test3 = test3.reshape(-1)
+    test3 = test3.tolist()
+    x_tests.append(test3)
+    test4 = np.array([ [0,0,0],[0,0,0],[0,1,0] ])
+    test4 = test4.reshape(-1)
+    test4 = test4.tolist()
+    x_tests.append(test4)
+    test5 = np.array([ [0,1,0],[0,0,0],[0,0,0] ])
+    test5 = test5.reshape(-1)
+    test5 = test5.tolist()
+    x_tests.append(test5)
+    test6 = np.array([ [0,0,0],[0,0,0],[1,0,0] ])
+    test6 = test6.reshape(-1)
+    test6 = test6.tolist()
+    x_tests.append(test6)
+    test7 = np.array([ [0,0,0],[0,1,0],[0,0,0] ])
+    test7 = test7.reshape(-1)
+    test7 = test7.tolist()
+    x_tests.append(test7)
+    y_tests = [[1.0,0.0],[1.0,0.0],[0.0,1.0],[0.0,1.0],[0.0,1.0],[0.0,1.0],[1.0,0.0]]
+
+    return [x_tests, y_tests]
+
+test_data = generate_siimple_test_data()
+# X_train is an array where we will store all the training spectograms
+#X_train = np.array(holas)
+X_train = np.array(test_data[0])
+print("x train shape is {n}".format(n=str(X_train.shape)))
+# Y_train is an array where we will store the answers that correspond to the training data
+# results array will have the following structure ["hola", "silence"]
+#Y_train = [[1, 0],[1, 0],[1, 0],[1, 0],[1, 0],[1, 0],[1, 0]]
+#Y_train = np.array(Y_train)
+Y_train = np.array(test_data[1])
+print("y train is \n : {f}".format(f = Y_train))
+
+data_inputs = X_train
+data_outputs = Y_train
+
+''' generating CNN model '''
+print("data inputs[0,:]")
+print(data_inputs[0,:])
+
+
+HL1_neurons = 4
+input_HL1_weights = numpy.random.uniform(low=-5, high=5, size=(data_inputs.shape[1], HL1_neurons))
+HL2_neurons = 3
+HL1_HL2_weights = numpy.random.uniform(low=-5, high=5, size=(HL1_neurons, HL2_neurons))
+output_neurons = 2
+HL2_output_weights = numpy.random.uniform(low=-5, high=5, size=(HL2_neurons, output_neurons))
+
+#H1_outputs = numpy.matmul(a=data_inputs[0, :], b=input_HL1_weights)
+#H1_outputs = sigmoid(H1_outputs)
+#H2_outputs = numpy.matmul(a=H1_outputs, b=HL1_HL2_weights)
+#H2_outputs = sigmoid(H2_outputs)
+#out_otuputs = numpy.matmul(a=H2_outputs, b=HL2_output_weights)
+
+weights = numpy_matrix_list([input_HL1_weights,
+                            HL1_HL2_weights,
+                            HL2_output_weights])
+
+weights = train_network(num_iterations=100,
+                        weights=weights,
+                        data_inputs=data_inputs,
+                        data_outputs=data_outputs,
+                        learning_rate=0.01,
+                        activation="sigmoid")
+
+print("CNN trained correctly")
+#predicted_label = numpy.where(out_otuputs == numpy.max(out_otuputs))[0][0]
+#print("Predicted class : ", predicted_label)
