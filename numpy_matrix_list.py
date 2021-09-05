@@ -13,6 +13,16 @@ class numpy_matrix_list():
 				res.append(self.list[i]-l2.list[i])
 			return numpy_matrix_list(res)
 
+	def __add__(self,l2):
+		if len(self.list) != len(l2.list):
+			raise Exception('resting matrices are not the same lenght')
+			return
+		else:
+			res = []
+			for i in range(len(self.list)):
+				res.append(self.list[i]+l2.list[i])
+			return numpy_matrix_list(res)
+
 	def __mul__(self,l2):
 		res = []
 		if type(l2) == int or type(l2) == float:
