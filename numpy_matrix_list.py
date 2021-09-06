@@ -1,5 +1,9 @@
-import numpy as np
 class numpy_matrix_list():
+	'''
+	numpy_matrix_list is a class designed to hold
+	several 2D numpy matrices with different shapes
+	and perform operations with such matrices
+	'''
 	def __init__(self,matrix_list):
 		self.list = matrix_list
 
@@ -15,19 +19,12 @@ class numpy_matrix_list():
 
 	def __add__(self,l2):
 		if len(self.list) != len(l2.list):
-			raise Exception('resting matrices are not the same lenght')
+			raise Exception('adding matrices are not the same lenght')
 			return
 		else:
 			res = []
 			for i in range(len(self.list)):
 				res.append(self.list[i]+l2.list[i])
-			return numpy_matrix_list(res)
-
-	def __mul__(self,l2):
-		res = []
-		if type(l2) == int or type(l2) == float:
-			for i in range(len(self.list)):
-				res.append(self.list[i]*l2)
 			return numpy_matrix_list(res)
 
 	def scalar_mult(self,l2):
@@ -47,7 +44,4 @@ class numpy_matrix_list():
 			res += "______________________________"
 		return res
 
-	@staticmethod
-	def len(l1):
-		return len(l1.list)
 
