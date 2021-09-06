@@ -52,24 +52,29 @@ class neuralNetwork():
     def train_network(self, num_iterations):
         #self.trainX = numpy.insert(self.trainX,0,1,1) # we insert bias term
         for iteration in range(num_iterations):
-            #print("Itreation ", iteration)
+            print("Itreation ", iteration)
             for sample_idx in range(self.len_training_samples):
                 self.forward_propagation(sample_idx)
-            #print("Error: {e}".format(e = self.total_cost_function()))
+            print("Error: {e}".format(e = self.total_cost_function()))
 
 
     def forward_propagation(self, i):
         r1 = self.trainX[i, :] # nth row of the xtrain data
+        #print("shape of r1 starting fp is {s}".format(s = r1.shape))
+        #r1 = numpy.insert(r1,0,1,1) # we add bias term
         self.a = []
         self.a.append(numpy.array([r1]))
         for l in range(self.layers-1):
             curr_weights = self.weights[l]
+            #print("shape of r1 after bias is {s}".format(s = r1.shape))
             r1 = numpy.matmul(r1, curr_weights)
             r1 = self.sigmoid(r1)
+            #r1 = numpy.insert(r1,0,1,1) # we add bias term
             self.a.append(numpy.array([r1]))            
         curr_weights = self.weights[-1]            
         r1 = numpy.matmul(r1, curr_weights)
         r1 = self.sigmoid(r1)
+        #r1 = numpy.insert(r1,0,1,1) # we add bias term
         self.a.append(numpy.array([r1]))
         self.output = r1
         predicted_label = self.round(r1)

@@ -230,21 +230,24 @@ data_outputs = Y_train
 
 ''' generating CNN model '''
 #print("data inputs[0,:]")
-#print(data_inputs[0,:])
+print(data_inputs.shape)
 
-HL1_neurons = X_train.shape[0]//2
-input_HL1_weights = numpy.random.uniform(low=-1.2, high=1.2, size=(data_inputs.shape[1], HL1_neurons))
-HL2_neurons = 1000
-HL1_HL2_weights = numpy.random.uniform(low=-1.2, high=1.2, size=(HL1_neurons, HL2_neurons))
+#HL1_neurons = data_inputs.shape[1]//3
+HL1_neurons = 3200
+input_HL1_weights = numpy.random.uniform(low=-1, high=1, size=(data_inputs.shape[1], HL1_neurons))
+HL2_neurons = 320
+HL1_HL2_weights = numpy.random.uniform(low=-1, high=1, size=(HL1_neurons, HL2_neurons))
+HL3_neurons = 32
+HL2_HL3_weights = numpy.random.uniform(low=-1, high=1, size=(HL2_neurons, HL3_neurons))
 output_neurons = 2
-HL2_output_weights = numpy.random.uniform(low=-1.2, high=1.2, size=(HL2_neurons, output_neurons))
+HL2_output_weights = numpy.random.uniform(low=-1, high=1, size=(HL3_neurons, output_neurons))
 
-weights = numpy_matrix_list([input_HL1_weights, HL1_HL2_weights, HL2_output_weights])
+weights = numpy_matrix_list([input_HL1_weights, HL1_HL2_weights, HL2_HL3_weights,  HL2_output_weights])
 
 #X_train, weights = neuralNetwork.add_bias_terms(X_train, weights)
 
-neural_network = neuralNetwork(inital_weights = weights, trainX = data_inputs, trainY = data_outputs, learning_rate = 0.01)
-neural_network.train_network(num_iterations = 100)
+neural_network = neuralNetwork(inital_weights = weights, trainX = data_inputs, trainY = data_outputs, learning_rate = 0.2)
+neural_network.train_network(num_iterations = 10)
 
 print("=================== CNN trained correctly ===================")
 
