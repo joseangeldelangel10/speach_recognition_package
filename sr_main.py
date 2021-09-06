@@ -186,20 +186,67 @@ for i in range(len(f)):
     spect = spect.tolist()
     comos.append(spect)
 
+''' ====================== WE GET ALL TEST "QUE"S AUDIOS ====================== '''
+
+if current_os == 0:
+    mypath = "./que_voice_samples"    
+elif current_os == 1:
+    mypath = "D:\\tecdemty\\5to Semestre\\Sistems and signals\\que_voice_samples"
+
+f = []
+for (dirpath, dirnames, filenames) in walk(mypath):
+    f.extend(filenames)
+    print("\nthe files with 'que' that will be used to train the network are: \n {f} \n".format(f = f))
+
+# ques will be an array containing the flattened version of "que"'s spectograms
+ques = []
+
+for i in range(len(f)):
+    if current_os == 0:    
+        samples, sampling_rate = librosa.load(mypath+"/" + f[i], sr=None, mono=True, offset= 0.0, duration = None)
+    else:
+        samples, sampling_rate = librosa.load(mypath+"\\" + f[i], sr=None, mono=True, offset= 0.0, duration = None)
+    n = len(samples)
+    T = 1/sampling_rate
+
+    # we plot signal in time and frequency domain
+    # plot_signal(samples, sampling_rate)
+    # fft_plot(samples, sampling_rate) 
+
+    # we generate the spectogram of the audio with windows of 20ms
+    # spectogram function will return a 2D array with the amplitude 
+    # that corresponds to each amplitude in the nth window of time
+    spect = spectrogram(samples, sampling_rate, max_freq = 8000)
+    
+    #spectrogram_heatmap(spect, "hola {n}".format(n = i))
+    
+    spect = numpy.array(spect)
+    spect = spect.reshape(-1)
+    spect = spect.tolist()
+    ques.append(spect)
+
 ''' ====================== WE TRAIN NEURAL NETWORK ====================== '''
 
 print("\n============= TRAINING THE NEURAL NETWORK ==============\n")
-
-Xdata = holas
-Xdata += comos
+Xdata = holas.copy()
+Xdata += comos.copy()
+Xdata += ques.copy()
 X_train = np.array(Xdata)
 # Y_train is an array where we will store the answers that correspond to the training data
 # results will have the following structure ["hola", "como"]
-Y_train = [[1,0],[1,0],[1,0],
+Y_train = []
+for i in range(len(holas)):
+    Y_train.append([1,0,0])
+for j in range(len(comos)):
+    Y_train.append([0,1,0])
+for x in range(len(ques)):
+    Y_train.append([0,0,1])
+'''Y_train = [[1,0],[1,0],[1,0],
             [1,0],[1,0],[1,0],
             [0,1],[0,1],[0,1],
-            [0,1],[0,1],[0,1]]
+            [0,1],[0,1],[0,1]]'''
 Y_train = np.array(Y_train)
+print("Y_train is :\n" + str(Y_train))
 data_inputs = X_train
 data_outputs = Y_train
 
@@ -212,19 +259,55 @@ HL2_neurons = 320
 HL1_HL2_weights = numpy.random.uniform(low=-1, high=1, size=(HL1_neurons, HL2_neurons))
 HL3_neurons = 32
 HL2_HL3_weights = numpy.random.uniform(low=-1, high=1, size=(HL2_neurons, HL3_neurons))
-output_neurons = 2
+output_neurons = 3
 HL2_output_weights = numpy.random.uniform(low=-1, high=1, size=(HL3_neurons, output_neurons))
 weights = numpy_matrix_list([input_HL1_weights, HL1_HL2_weights, HL2_HL3_weights,  HL2_output_weights])
 
 # we initialize and train our neural network with the corresponding training data 
-neural_network = neuralNetwork(inital_weights = weights, trainX = data_inputs, trainY = data_outputs, learning_rate = 0.2)
-neural_network.train_network(num_iterations = 10)
+neural_network = neuralNetwork(inital_weights = weights, trainX = data_inputs, trainY = data_outputs, learning_rate = 0.02)
+neural_network.train_network(num_iterations = 200)
 
 print("=================== CNN trained correctly ===================")
 
-print("\n\n Let's predict some inputs, results must be : \n {f} \n\n".format(f = Y_train))
-print("f[0] is {f}".format(f = f[0]))
+print("\n\n Let's predict training inputs, results must be : \n {f} \n\n".format(f = Y_train))
+print("Prediction results for training are: \n {f} \n".format(f = neural_network.predict_outputs( X_train) ))
 
-#playsound(mypath +"/"+f[0])
+print("=================== AGORITHM TESTING ===================")
 
-print("Prediction results are: \n {f} \n".format(f = neural_network.predict_outputs( X_train) ))
+if current_os == 0:
+    mypath = "./test_audios"    
+elif current_os == 1:
+    mypath = "D:\\tecdemty\\5to Semestre\\Sistems and signals\\test_audios"
+
+f = []
+for (dirpath, dirnames, filenames) in walk(mypath):
+    f.extend(filenames)
+
+testing = True
+
+while testing:
+    print("\nPlease select one of the following files to test the alorithm:\n")
+    for i in range(len(f)):
+        print(str(i) + " " + f[i])
+
+    index = int(input())
+
+    if current_os == 0:    
+        samples, sampling_rate = librosa.load(mypath+"/" + f[index], sr=None, mono=True, offset= 0.0, duration = None)
+    else:
+        samples, sampling_rate = librosa.load(mypath+"\\" + f[index], sr=None, mono=True, offset= 0.0, duration = None)
+    n = len(samples)
+    T = 1/sampling_rate
+    spect = spectrogram(samples, sampling_rate, max_freq = 8000)
+    spect = numpy.array(spect)
+    spect = spect.reshape(-1)
+    spect = np.array([spect.tolist()])
+
+    print("\nThe file has the following audio ... \n")
+    time.sleep(0.5)
+    playsound(mypath +"/"+f[index])
+    time.sleep(3)
+    print("Prediction structure is: \n ['hola','como', 'que'] \n")
+    print("\nPrediction results are: \n {f} \n".format(f = neural_network.predict_outputs(spect) ))
+    print("Do you want to try another audio? \n0 no \n1 yes")
+    testing = bool(int(input()))
