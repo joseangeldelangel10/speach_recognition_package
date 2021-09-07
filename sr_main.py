@@ -71,6 +71,34 @@ def spectrogram(samples, sample_rate, stride_ms = 10.0, window_ms = 20.0, max_fr
     specgram = np.log(fft[:ind, :] + eps)
     return specgram
 
+def plot_all(samples, sampling_rate, spectrogram, title):
+    
+    #time
+    fig, ax = plt.subplots(1,3)
+    xt = np.linspace(0,2,sampling_rate*2)
+    ax[0].plot(xt,samples)
+    ax[0].set_title("Time domain " + title)
+    ax[0].set_xlabel("seconds")
+    ax[0].set_ylabel("amplitude")
+    
+    #frequency
+    yf = fft(samples)
+    # we create a vector to plot half of the frquencies based
+    # on nyquist sampling teorem
+    xf = np.linspace(0.0, 1/(2*T) , n//2)
+    ax[1].plot(xf, 2.0/n * np.abs(yf[:n//2]))
+    ax[1].set_title("Frequency domain " + title)
+    ax[1].set_xlabel("Frequency")
+    ax[1].set_ylabel("Magnitude")
+
+    #spectogram
+    ax[2] = sb.heatmap(spectrogram)
+    ax[2].set_title(title)
+    ax[2].set_ylabel("Frequency over {n}".format(n = int(  (1/(2*T)) / len(spectrogram)  )))
+    ax[2].set_xlabel("Time window")
+    
+    return plt.show()
+
 def plot_signal(samples, sampling_rate):
     librosa.display.waveplot(y = samples, sr = sampling_rate)
     plt.grid()
@@ -299,6 +327,7 @@ while testing:
     n = len(samples)
     T = 1/sampling_rate
     spect = spectrogram(samples, sampling_rate, max_freq = 8000)
+    g_spect = spect.copy()
     spect = numpy.array(spect)
     spect = spect.reshape(-1)
     spect = np.array([spect.tolist()])
@@ -307,6 +336,8 @@ while testing:
     time.sleep(0.5)
     playsound(mypath +"/"+f[index])
     time.sleep(3)
+    print("The file generates the following graphs")
+    plot_all(samples, sampling_rate, g_spect, "audio {n}".format(n = index+1))
     print("Prediction structure is: \n ['hola','como', 'que'] \n")
     print("\nPrediction results are: \n {f} \n".format(f = neural_network.predict_outputs(spect) ))
     print("Do you want to try another audio? \n0 no \n1 yes")
