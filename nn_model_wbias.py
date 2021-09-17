@@ -87,8 +87,6 @@ class neuralNetwork():
             self.backprop(i)
 
     def backprop(self, i):
-        #print("BACKPROP******************")
-        #print("matmul is thetaN(weights[i]) * deltaNT (error)")
         layers = self.layers
         for l in range(layers):
             if l == 0:
@@ -98,10 +96,6 @@ class neuralNetwork():
                 thetaN = self.weights[layers-l][1:,:]
                 deltaN = self.deltas[layers-l]
                 deltaNT = deltaN.transpose()
-                #print("l is {n}".format(n=l))
-                #print( "thetaN size is: {f}".format(f=thetaN.shape ))
-                #print("deltaNT size is: {f}".format(f=deltaNT.shape ))
-                #print("aN size is: {f}".format(f=self.a[layers-l].shape ))    
                 mul = numpy.matmul(thetaN, deltaNT)
                 g_prime = numpy.array(self.a[layers-l]*(numpy.ones(self.a[layers-l].shape)-self.a[layers-l]))
                 self.deltas[layers-1-l] = mul.transpose()*g_prime
@@ -131,9 +125,7 @@ class neuralNetwork():
     def cost_function(self, test_num):
         i = test_num
         res = 0
-
         r1 = numpy.array([self.trainX[i, :]]) # nth row of the xtrain data
-        #r1 = numpy.insert(r1,0,1,1) # we add bias term
         for l in range(self.layers-1):
             curr_weights = self.weights[l]
             r1 = numpy.insert(r1,0,1,1) # we add bias term
@@ -170,17 +162,6 @@ class neuralNetwork():
             derivativeN = self.total_cost_function_plus_deltaweigth(layer, 0, j, step)- self.total_cost_function()
             derivativeN = derivativeN/step
             res.append(derivativeN)
-        return res
-
-    @staticmethod
-    def add_bias_terms(inp, weights):
-        res = []
-        res.append(numpy.insert(inp,0,1,1))
-        biased_weights = []
-        #for i in range(len(weights.list)):
-        for i in range(1):
-            biased_weights.append( numpy.insert(weights[i],0,1,0) )
-        res.append(numpy_matrix_list(biased_weights))
         return res
 
 

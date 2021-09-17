@@ -5,12 +5,10 @@ class neuralNetwork():
     """ neuralNetwork class is a class designed to easily create
     a multilayer perceptron that is able to classify any input 
     based on its training.
-
     This class was designed by Jose Angel Del Angel Dominguez 2021
     and its inspired by Ahmed Gad's article named 'Artificial 
     Neural Network Implementation using NumPy and Classification 
     of the Fruits360 Image Dataset' [2019] found in:
-
     https://towardsdatascience.com/artificial-neural-network-
     implementation-using-numpy-and-classification-of-the-fruits360
     -image-3c56affa4491
@@ -48,15 +46,15 @@ class neuralNetwork():
             aT = self.a[l].transpose()
             d = self.deltas[l]
             derivative = numpy.matmul(aT, d)
-            bias_derivative = self.get_bias_derivatives_for_layer(l, derivative.shape[1])
-            derivative = numpy.insert(derivative,0,bias_derivative,0)
             cost_derivative.append(derivative)
         cost_derivative = numpy_matrix_list(cost_derivative)
-        # we perform gradient descent:
+        
+        # we perform gradient descent: 
         new_weights = self.weights - cost_derivative.scalar_mult(self.learning_rate).scalar_mult(1/self.len_training_samples)
         self.weights = new_weights
 
     def train_network(self, num_iterations):
+        #self.trainX = numpy.insert(self.trainX,0,1,1) # we insert bias term
         for iteration in range(num_iterations):
             print("Itreation ", iteration)
             for sample_idx in range(self.len_training_samples):
@@ -65,43 +63,33 @@ class neuralNetwork():
 
 
     def forward_propagation(self, i):
-        r1 = numpy.array([self.trainX[i, :]]) # nth row of the xtrain data
+        r1 = numpy.array([self.trainX[i, :]])
         self.a = []
         self.a.append(r1)
         for l in range(self.layers-1):
             curr_weights = self.weights[l]
-            r1 = numpy.insert(r1,0,1,1) # we add bias term
             r1 = numpy.matmul(r1, curr_weights)
             r1 = self.sigmoid(r1)
             self.a.append(r1)            
-        curr_weights = self.weights[-1]
-        r1 = numpy.insert(r1,0,1,1) # we add bias term          
+        curr_weights = self.weights[-1]            
         r1 = numpy.matmul(r1, curr_weights)
         r1 = self.sigmoid(r1)
         self.a.append(r1)
         self.output = r1
         predicted_label = self.round(r1)
         desired_label = self.trainY[i]
-        #self.backprop(i)
         if not numpy.all(predicted_label == desired_label):
             self.backprop(i)
 
     def backprop(self, i):
-        #print("BACKPROP******************")
-        #print("matmul is thetaN(weights[i]) * deltaNT (error)")
         layers = self.layers
         for l in range(layers):
             if l == 0:
                 self.deltas[layers-1-l] = self.output-self.trainY[i]
-                #self.deltas[layers-1-l] = numpy.array([self.deltas[layers-1-l]])
             else:
-                thetaN = self.weights[layers-l][1:,:]
+                thetaN = self.weights[layers-l]
                 deltaN = self.deltas[layers-l]
-                deltaNT = deltaN.transpose()
-                #print("l is {n}".format(n=l))
-                #print( "thetaN size is: {f}".format(f=thetaN.shape ))
-                #print("deltaNT size is: {f}".format(f=deltaNT.shape ))
-                #print("aN size is: {f}".format(f=self.a[layers-l].shape ))    
+                deltaNT = deltaN.transpose()    
                 mul = numpy.matmul(thetaN, deltaNT)
                 g_prime = numpy.array(self.a[layers-l]*(numpy.ones(self.a[layers-l].shape)-self.a[layers-l]))
                 self.deltas[layers-1-l] = mul.transpose()*g_prime
@@ -113,13 +101,11 @@ class neuralNetwork():
         for sample_idx in range(trainX.shape[0]):
             r1 = numpy.array([trainX[sample_idx, :]])
             for curr_weights in self.weights.list:
-                r1 = numpy.insert(r1,0,1,1)
                 r1 = numpy.matmul(r1,curr_weights)
                 r1 = self.sigmoid(r1)
             predicted_label = self.round(r1)
             predictions.append(predicted_label.tolist()[0])
         return numpy.array(predictions)
-
 
     def total_cost_function(self):
         res = 0
@@ -131,16 +117,12 @@ class neuralNetwork():
     def cost_function(self, test_num):
         i = test_num
         res = 0
-
-        r1 = numpy.array([self.trainX[i, :]]) # nth row of the xtrain data
-        #r1 = numpy.insert(r1,0,1,1) # we add bias term
+        r1 = numpy.array([self.trainX[i, :]])
         for l in range(self.layers-1):
             curr_weights = self.weights[l]
-            r1 = numpy.insert(r1,0,1,1) # we add bias term
             r1 = numpy.matmul(r1, curr_weights)
-            r1 = self.sigmoid(r1)        
-        curr_weights = self.weights[-1]
-        r1 = numpy.insert(r1,0,1,1) # we add bias term           
+            r1 = self.sigmoid(r1)            
+        curr_weights = self.weights[-1]            
         r1 = numpy.matmul(r1, curr_weights)
         h = self.sigmoid(r1)
         y = self.trainY
@@ -150,37 +132,3 @@ class neuralNetwork():
             res += term.sum()
 
         return res
-
-    def total_cost_function_plus_deltaweigth(self, layer, x, y, step):
-        res = 0
-        m = self.len_training_samples
-        temp = self.weights[layer][x,y]
-        self.weights[layer][x,y] = temp + step
-
-        for i in range(self.len_training_samples):
-            res += self.cost_function(i)
-        self.weights[layer][x,y] = temp
-
-        return -1/m * res  
-    
-    def get_bias_derivatives_for_layer(self, layer, wN_lenght):
-        res = []
-        step = 0.0001
-        for j in range(wN_lenght):
-            derivativeN = self.total_cost_function_plus_deltaweigth(layer, 0, j, step)- self.total_cost_function()
-            derivativeN = derivativeN/step
-            res.append(derivativeN)
-        return res
-
-    @staticmethod
-    def add_bias_terms(inp, weights):
-        res = []
-        res.append(numpy.insert(inp,0,1,1))
-        biased_weights = []
-        #for i in range(len(weights.list)):
-        for i in range(1):
-            biased_weights.append( numpy.insert(weights[i],0,1,0) )
-        res.append(numpy_matrix_list(biased_weights))
-        return res
-
-

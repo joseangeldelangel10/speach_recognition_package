@@ -22,7 +22,7 @@ from playsound import playsound
 from scipy.fft import fft, ifft
 from scipy import signal
 '''___________ CNN LIBRARY_____________'''
-from cnn_model import *
+from nn_model import *
 from numpy_matrix_list import numpy_matrix_list
 from simple_test_data import *
 
@@ -256,23 +256,22 @@ for i in range(len(f)):
 ''' ====================== WE TRAIN NEURAL NETWORK ====================== '''
 
 print("\n============= TRAINING THE NEURAL NETWORK ==============\n")
-Xdata = holas.copy()
-Xdata += comos.copy()
-Xdata += ques.copy()
+#Xdata = holas.copy()
+#Xdata += comos.copy()
+#Xdata += ques.copy()
+simple_test_dataD = generate_simple_test_data()
+Xdata = simple_test_dataD[0]
 X_train = np.array(Xdata)
 # Y_train is an array where we will store the answers that correspond to the training data
 # results will have the following structure ["hola", "como"]
-Y_train = []
+'''Y_train = []
 for i in range(len(holas)):
     Y_train.append([1,0,0])
 for j in range(len(comos)):
     Y_train.append([0,1,0])
 for x in range(len(ques)):
-    Y_train.append([0,0,1])
-'''Y_train = [[1,0],[1,0],[1,0],
-            [1,0],[1,0],[1,0],
-            [0,1],[0,1],[0,1],
-            [0,1],[0,1],[0,1]]'''
+    Y_train.append([0,0,1])'''
+Y_train = simple_test_dataD[1]
 Y_train = np.array(Y_train)
 print("Y_train is :\n" + str(Y_train))
 data_inputs = X_train
@@ -280,17 +279,19 @@ data_outputs = Y_train
 
 print("\nWe will use {n} audios to test the data with {m} amplitudes \n".format(n=data_inputs.shape[0], m=data_inputs.shape[1]))
 
-# We define the neurons and layers that our neural network will have (network architecture) 
-HL1_neurons = 3200
-input_HL1_weights = numpy.random.uniform(low=-1, high=1, size=(data_inputs.shape[1], HL1_neurons))
-HL2_neurons = 320
-HL1_HL2_weights = numpy.random.uniform(low=-1, high=1, size=(HL1_neurons, HL2_neurons))
-HL3_neurons = 32
-HL2_HL3_weights = numpy.random.uniform(low=-1, high=1, size=(HL2_neurons, HL3_neurons))
-output_neurons = 3
-HL2_output_weights = numpy.random.uniform(low=-1, high=1, size=(HL3_neurons, output_neurons))
-weights = numpy_matrix_list([input_HL1_weights, HL1_HL2_weights, HL2_HL3_weights,  HL2_output_weights])
+bias_term = 0 #please change this line depending on the neral network model you import
 
+# We define the neurons and layers that our neural network will have (network architecture) 
+HL1_neurons = 9
+input_HL1_weights = numpy.random.uniform(low=-1, high=1, size=(data_inputs.shape[1]+bias_term, HL1_neurons))
+#HL2_neurons = 9
+#HL1_HL2_weights = numpy.random.uniform(low=-1, high=1, size=(HL1_neurons+bias_term, HL2_neurons))
+#HL3_neurons = 4
+#HL2_HL3_weights = numpy.random.uniform(low=-1, high=1, size=(HL2_neurons+bias_term, HL3_neurons))
+output_neurons = 2
+HL2_output_weights = numpy.random.uniform(low=-1, high=1, size=(HL1_neurons+bias_term, output_neurons))
+#weights = numpy_matrix_list([input_HL1_weights, HL1_HL2_weights, HL2_HL3_weights,  HL2_output_weights])
+weights = numpy_matrix_list([input_HL1_weights,  HL2_output_weights])
 # we initialize and train our neural network with the corresponding training data 
 neural_network = neuralNetwork(inital_weights = weights, trainX = data_inputs, trainY = data_outputs, learning_rate = 0.02)
 neural_network.train_network(num_iterations = 200)
@@ -300,10 +301,26 @@ print("=================== CNN trained correctly ===================")
 print("\n\n Let's predict training inputs, results must be : \n {f} \n\n".format(f = Y_train))
 print("Prediction results for training are: \n {f} \n".format(f = neural_network.predict_outputs( X_train) ))
 
-print("=================== AGORITHM TESTING ===================")
 
-if current_os == 0:
-    mypath = "./test_audios"    
+print("=================== AGORITHM TESTING ===================")
+print("please present every row of the list in the format\n 'n m k' \n")
+
+testing = True
+while testing:
+    test = []
+    for i in range(3):
+        row = input('row {n}: '.format(n=i))
+        row = row.split()
+        row = list(map(int, row))
+        test += row
+    test = np.array([test])
+    print(  "\ntest matrix is: \n {f} \n".format(f=test) )
+    print("Prediction results are: \n {f} \n".format(f = neural_network.predict_outputs( test ) ))
+    testing = bool(int(input("Do you want to test again?: ")))
+
+
+'''if current_os == 0:
+    mypath = "./real_test_audios"    
 elif current_os == 1:
     mypath = "D:\\tecdemty\\5to Semestre\\Sistems and signals\\test_audios"
 
@@ -341,4 +358,4 @@ while testing:
     print("Prediction structure is: \n ['hola','como', 'que'] \n")
     print("\nPrediction results are: \n {f} \n".format(f = neural_network.predict_outputs(spect) ))
     print("Do you want to try another audio? \n0 no \n1 yes")
-    testing = bool(int(input()))
+    testing = bool(int(input()))'''
